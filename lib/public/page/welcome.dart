@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:khmerjobs/public/page/login.dart';
-
+import 'package:khmerjobs/public/page/register.dart';
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
@@ -114,7 +114,7 @@ class WelcomeScreen extends StatelessWidget {
                 ],
               ),
               const Spacer(),
-              // Get started button
+              // login button
               SizedBox(
                 width: double.infinity,
                 height: 52,
@@ -134,13 +134,13 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 25),
               // Sign in button
               SizedBox(
                 width: double.infinity,
                 height: 52,
                 child: OutlinedButton(
-                  onPressed: () => Get.to(() => const Login()),
+                  onPressed: () => Get.to(() => const Register()),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF333333)),
                     shape: RoundedRectangleBorder(
