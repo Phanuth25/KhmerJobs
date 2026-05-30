@@ -1,9 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
+import 'package:khmerjobs/public/page/candidate_home.dart';
 import 'package:khmerjobs/public/page/login.dart';
 import 'package:khmerjobs/public/page/register.dart';
-class WelcomeScreen extends StatelessWidget {
+
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  String token = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadToken();
+  }
+
+  Future<void> _loadToken() async {
+    const storage = FlutterSecureStorage();
+    final value = await storage.read(key: 'token');
+    setState(() {
+      token = value ?? '';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +143,15 @@ class WelcomeScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton.icon(
-                  onPressed: () => Get.to(() => Login()),
+                  onPressed: () {
+                    if (token == 'candidate') {
+                      Get.offAll(() => const CandidateHomeScreen());
+                    } else if (token == '') {
+                      Get.offAll(() => const Login());
+                    } else {
+                      Get.offAll(() => const CandidateHomeScreen());
+                    }
+                  },
                   icon: const Icon(Icons.rocket_launch, color: Colors.white),
                   label: const Text(
                     'Get started',
@@ -136,23 +168,29 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 25),
               // Sign in button
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: OutlinedButton(
-                  onPressed: () => Get.to(() => const Register()),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF333333)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+              ...[
+                if (token == '')
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: OutlinedButton(
+                      onPressed: () => Get.to(() => const Register()),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF333333)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text(
+                        'Sign in',
+                        style: TextStyle(
+                          color: Color(0xFFAAAAAA),
+                          fontSize: 15,
+                        ),
+                      ),
                     ),
                   ),
-                  child: const Text(
-                    'Sign in',
-                    style: TextStyle(color: Color(0xFFAAAAAA), fontSize: 15),
-                  ),
-                ),
-              ),
+              ],
               const SizedBox(height: 20),
               Center(
                 child: RichText(

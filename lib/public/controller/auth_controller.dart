@@ -1,8 +1,8 @@
-import 'package:dio/dio.dart'; // Replaced http with dio
+import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart' hide FormData;
 
 class AuthController extends GetxController {
-  // Initialize Dio instance
   final Dio _dio = Dio();
 
   var message = "".obs;
@@ -14,14 +14,13 @@ class AuthController extends GetxController {
   var userId = RxnString();
   var id = RxnString();
   var role = RxnString();
-  double totalPoints = 0;
+  var name = RxnString();
 
   String get isUserid => userId.value ?? "No id";
 
-  // String accounturl = "http://localhost:5000/api"; do not remove this line
   final String accounturl = "http://10.0.2.2:3000/api";
 
-  Future<void> login(String userid, String password) async {
+  Future<void> login(String email, String password) async {
     message.value = "";
     isLoading.value = true;
 
@@ -31,31 +30,46 @@ class AuthController extends GetxController {
         data: {'email': email, 'password': password},
       );
 
-      // Dio automatically decodes JSON, so no need for json.decode()
       final data = response.data;
 
       if (response.statusCode == 200) {
-        message.value = data['message'];
+        message.value = data['message'] ?? "Login successful";
         userToken.value = data['token'];
         refreshToken.value = data['refreshtoken'];
         userId.value = data['userid']?.toString();
         role.value = data['role'];
-        // ignore: avoid_print
-        print("userid${userId.value}");
         id.value = data['id']?.toString();
+        name.value = data['name'];
+        this.email.value = email; // Store email on success
       } else {
-        message.value = data['message'];
+        message.value = data['error'] ?? data['message'] ?? "Login failed";
         userToken.value = null;
       }
     } on DioException catch (e) {
-      // Dio catches non-200 status codes as exceptions by default
-      message.value =
-          e.response?.data['message'] ?? "Login failed: ${e.message}";
+      // Check for 'error' field in backend response
+      message.value = e.response?.data['error'] ?? 
+                      e.response?.data['message'] ?? 
+                      "Login failed: ${e.message}";
     } catch (e) {
       message.value = "Login failed: $e";
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void logout() async{
+    final storage = Get.find<FlutterSecureStorage>();
+    userToken.value = null;
+    refreshToken.value = null;
+    userId.value = null;
+    id.value = null;
+    role.value = null;
+    name.value = null;
+    email.value = null;
+    password.value = null;
+    message.value = "";
+    // Navigation to login can be handled in the UI or here if Get is used
+    await storage.deleteAll();
   }
 
   Future<void> register(
@@ -86,11 +100,10 @@ class AuthController extends GetxController {
         message.value = "successfully";
         userId.value = data['userid']?.toString();
       } else {
-        message.value =
-            data['error'] ?? data['message'] ?? "Registration failed";
+        message.value = data['error'] ?? data['message'] ?? "Registration failed";
       }
     } on DioException catch (e) {
-      message.value = e.response?.data['error'] ?? e.message;
+      message.value = e.response?.data['error'] ?? e.response?.data['message'] ?? e.message;
     } catch (e) {
       message.value = "Network failed: $e";
     } finally {
